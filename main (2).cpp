@@ -1,133 +1,77 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
 
-struct Student {
-    std::string uniqueIdentifier; 
-    std::string name;
-    bool graduated;
+enum class StudyField {
+    COMPUTER_SCIENCE,
+    ELECTRICAL_ENGINEERING,
+    MECHANICAL_ENGINEERING,
+    CIVIL_ENGINEERING,
+    BIOLOGY,
+    CHEMISTRY,
+    PHYSICS,
+    MATHEMATICS,
+    LITERATURE,
+    HISTORY
 };
 
-struct Faculty {
+class Student {
+public:
+    std::string firstName;
+    std::string lastName;
+    std::string email;
+    std::string enrollmentDate;
+    std::string dateOfBirth;
+
+    Student(std::string fName, std::string lName, std::string mail, std::string enrollDate, std::string dob)
+        : firstName(fName), lastName(lName), email(mail), enrollmentDate(enrollDate), dateOfBirth(dob) {}
+};
+
+class Faculty {
+public:
     std::string name;
-    std::string field;
+    std::string abbreviation;
     std::vector<Student> students;
+    StudyField studyField;
+
+    Faculty(std::string n, std::string abbr, StudyField field) : name(n), abbreviation(abbr), studyField(field) {}
+
+    void addStudent(const Student& student) {
+        students.push_back(student);
+    }
+
+    void displayStudents() {
+        std::cout << "Students in " << name << " (" << abbreviation << ") - Study Field: ";
+        switch (studyField) {
+            case StudyField::COMPUTER_SCIENCE:
+                std::cout << "Computer Science";
+                break;
+            case StudyField::ELECTRICAL_ENGINEERING:
+                std::cout << "Electrical Engineering";
+                break;
+            default:
+                std::cout << "Unknown";
+                break;
+        }
+        std::cout << ":" << std::endl;
+
+        for (const auto& student : students) {
+            std::cout << "Name: " << student.firstName << " " << student.lastName
+                      << ", Email: " << student.email
+                      << ", Enrollment Date: " << student.enrollmentDate
+                      << ", Date of Birth: " << student.dateOfBirth << std::endl;
+        }
+    }
 };
 
-std::vector<Faculty> universities;
+int main() {
+    Student student1("John", "Doe", "john.doe@example.com", "2022-02-15", "1998-05-20");
+    Student student2("Jane", "Smith", "jane.smith@example.com", "2022-02-20", "1999-03-10");
 
-void addStudentToFaculty(const std::string& facultyName, const Student& student) {
-    auto faculty = std::find_if(universities.begin(), universities.end(),
-        [&facultyName](const Faculty& f) { return f.name == facultyName; });
+    Faculty computerScienceFaculty("Computer Science Faculty", "CSF", StudyField::COMPUTER_SCIENCE);
+    computerScienceFaculty.addStudent(student1);
+    computerScienceFaculty.addStudent(student2);
 
-    if (faculty != universities.end()) {
-        faculty->students.push_back(student);
-        std::cout << "Studentul " << student.name << " a fost adaugat la facultatea " << faculty->name << std::endl;
-    } else {
-        std::cout << "Facultatea " << facultyName << " nu a fost gasita." << std::endl;
-    }
+    computerScienceFaculty.displayStudents();
+
+    return 0;
 }
-
-void graduateStudent(const std::string& facultyName, const std::string& uniqueIdentifier) {
-    auto faculty = std::find_if(universities.begin(), universities.end(),
-        [&facultyName](const Faculty& f) { return f.name == facultyName; });
-
-    if (faculty != universities.end()) {
-        auto student = std::find_if(faculty->students.begin(), faculty->students.end(),
-            [&uniqueIdentifier](const Student& s) { return s.uniqueIdentifier == uniqueIdentifier; });
-
-        if (student != faculty->students.end()) {
-            student->graduated = true;
-            std::cout << "Studentul " << student->name << " a absolvit cu succes." << std::endl;
-        } else {
-            std::cout << "Studentul cu identificatorul " << uniqueIdentifier << " nu a fost gasit la facultatea " << facultyName << std::endl;
-        }
-    } else {
-        std::cout << "Facultatea " << facultyName << " nu a fost gasita." << std::endl;
-    }
-}
-
-void displayCurrentEnrolledStudents(const std::string& facultyName) {
-    auto faculty = std::find_if(universities.begin(), universities.end(),
-        [&facultyName](const Faculty& f) { return f.name == facultyName; });
-
-    if (faculty != universities.end()) {
-        std::cout << "Studentii actuali la facultatea " << faculty->name << " sunt:" << std::endl;
-        for (const auto& student : faculty->students) {
-            if (!student.graduated) {
-                std::cout << student.name << std::endl;
-            }
-        }
-    } else {
-        std::cout << "Facultatea " << facultyName << " nu a fost gasita." << std::endl;
-    }
-}
-
-void displayGraduates(const std::string& facultyName) {
-    auto faculty = std::find_if(universities.begin(), universities.end(),
-        [&facultyName](const Faculty& f) { return f.name == facultyName; });
-
-    if (faculty != universities.end()) {
-        std::cout << "Absolventii facultatii " << faculty->name << " sunt:" << std::endl;
-        for (const auto& student : faculty->students) {
-            if (student.graduated) {
-                std::cout << student.name << std::endl;
-            }
-        }
-    } else {
-        std::cout << "Facultatea " << facultyName << " nu a fost gasita." << std::endl;
-    }
-}
-
-bool isStudentInFaculty(const std::string& facultyName, const std::string& uniqueIdentifier) {
-    auto faculty = std::find_if(universities.begin(), universities.end(),
-        [&facultyName](const Faculty& f) { return f.name == facultyName; });
-
-    if (faculty != universities.end()) {
-        auto student = std::find_if(faculty->students.begin(), faculty->students.end(),
-            [&uniqueIdentifier](const Student& s) { return s.uniqueIdentifier == uniqueIdentifier; });
-
-        return student != faculty->students.end();
-    } else {
-        std::cout << "Facultatea " << facultyName << " nu a fost gasita." << std::endl;
-        return false;
-    }
-}
-
-void createNewFaculty(const std::string& facultyName, const std::string& field) {
-    auto faculty = std::find_if(universities.begin(), universities.end(),
-        [&facultyName](const Faculty& f) { return f.name == facultyName; });
-
-    if (faculty == universities.end()) {
-        Faculty newFaculty;
-        newFaculty.name = facultyName;
-        newFaculty.field = field;
-        universities.push_back(newFaculty);
-        std::cout << "Facultatea " << facultyName << " a fost creata cu succes in domeniul " << field << std::endl;
-    } else {
-        std::cout << "Facultatea " << facultyName << " deja exista." << std::endl;
-    }
-}
-
-void searchFacultyByStudentIdentifier(const std::string& uniqueIdentifier) {
-    for (const auto& faculty : universities) {
-        auto student = std::find_if(faculty.students.begin(), faculty.students.end(),
-            [&uniqueIdentifier](const Student& s) { return s.uniqueIdentifier == uniqueIdentifier; });
-
-        if (student != faculty.students.end()) {
-            std::cout << "Studentul " << student->name << " apartine facultatii " << faculty.name << std::endl;
-            return;
-        }
-    }
-
-    std::cout << "Studentul cu identificatorul " << uniqueIdentifier << " nu a fost gasit in nicio facultate." << std::endl;
-}
-
-void displayUniversityFaculties() {
-    std::cout << "Facultatile universitatii sunt:" << std::endl;
-    for (const auto& faculty : universities) {
-        std::cout << faculty.name << " - Domeniu: " << faculty.field << std::endl;
-    }
-}
-
-void displayFacultiesByField(const std::string&
